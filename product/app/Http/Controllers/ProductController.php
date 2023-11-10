@@ -14,7 +14,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        $products = products::all();
+        return response()->json($products);
     }
 
     /**
@@ -22,9 +23,10 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(request $request)
     {
-        //
+        $products = products::create($request->all());
+        return response()->json($products);
     }
 
     /**
@@ -35,27 +37,34 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $products = $this->model->NewInstance(); // verificar
+        $products->fill($request->all());
+        $this->validate($request, [
+            "name"=> "required|string|max:1000"
+        ]);
+        $products->save();
+        return response()->json($products);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\products  $products
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(products $products)
+    public function show($id)
     {
-        //
+        $products = $this->facade->findOrFail($id);
+        return response()->json($products);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\products  $products
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit(products $products)
+    public function edit($id)
     {
         //
     }
@@ -64,10 +73,10 @@ class ProductController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\products  $products
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, products $products)
+    public function update(Request $request, $id)
     {
         //
     }
@@ -75,10 +84,10 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\products  $products
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(products $products)
+    public function destroy($id)
     {
         //
     }
