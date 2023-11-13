@@ -17,8 +17,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = json_decode(file_get_contents('https://jsoneditoronline.org/#left=cloud.baf82d0b0d6946f8a6b006fafb2a9293'), true);
-        dd($products);
+        $products = json_decode(file_get_contents('http://localhost/Product/src/testJSON.json'), true);
+      //  ($products);
         if ($products) {
         
         foreach ($products['products'] as $product) {
@@ -51,10 +51,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $products = products::get($request); // verificar
-        $products->fill($request->all());
-        $this->validate($request, [
-            "name"=> "required|string|max:1000"
-        ]);
+        $products->fill($request->all());        
         $products->save();
         return response()->json($products);
     }
@@ -137,43 +134,50 @@ class ProductController extends Controller
 
     public function toJSON()
     {
-        return [
+        return json_encode([
             'averageRating' => $this->averageRating,
             'images' => $this->images,
             'meetingPoint' => $this->meetingPoint,
-        ];
+        ]);
     }
 
     private function parseProduct(array $product)
     {
-        $averageRating = 0;
-        $reviewCountTotals = $product['reviews']['reviewCountTotals'];
+        $averageRating = 0; 
+        $averageCount = 0;  
+        $reviewCountTotals = $product["reviews"]["reviewCountTotals"];
+        
+        foreach ( $reviewCountTotals as $item) {            
+            $averageRating += $item["rating"] * $item["count"];
+        }        
+       
+        $averageRating = round($averageRating / $product["reviews"]["totalReviews"], 2);
 
-        for ($i = 1; $i <= 5; $i++) {
-            $averageRating += $reviewCountTotals[$i] * $i;
+        $images = []; $aux = 0;  $i=0;                                 // dd($image['variants'][$i]);
+        foreach ($product['images'] as $image) {            
+            $val = ($image['variants'][$i]["height"]*$image['variants'][$i]["width"]);
+            if ($aux < $val) {
+                $images = [$image['variants'][$i]["url"]];
+                $aux = $val;
+            }  
+            $i++;  
+            //$variants = $image['variants'];
         }
-
-        $averageRating = round($averageRating / array_sum($reviewCountTotals), 2);
-
-        $images = [];
-        foreach ($product['images'] as $image) {
-            $variants = $image['variants'];
-            $maxWidth = max(array_column($variants, 'width'));
-            $images[] = $variants[$maxWidth]['url'];
-        }
-
+      
+        //dd($variants);
         $meetingPoint = '';
         $description = $product['description'];
         if (strpos($description, 'Meeting point:') === 0) {
             $meetingPoint = substr($description, 13);
+           // $meetingPoint = substr('\n',"");
             $meetingPoint = ucfirst($meetingPoint);
         }
 
-        $product = new products();
+        $product = new ProductController();
         $product->setAverageRating($averageRating);
         $product->setImages($images);
         $product->setMeetingPoint($meetingPoint);
-
-        return $product;
+        dd($product->toJSON());
+        return $product->toJSON();
     }
 }
