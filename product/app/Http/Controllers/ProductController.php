@@ -64,7 +64,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $products = products::get( $id );
+        $products = products::find( $id ); //dd($products);
         return response()->json($products);
     }
 
